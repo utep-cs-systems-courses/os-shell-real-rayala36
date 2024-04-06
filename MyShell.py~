@@ -1,0 +1,42 @@
+#! /usr/bin/env python3
+
+import os, sys, re
+
+pid = os.getpid()
+childToProcessMap = {}
+
+def execShell():
+    while(True):
+        os.write(1, "$ ".encode())
+        clArgs = os.read(0, 100)
+
+        if len(clArgs)==0:
+            sys.exit(1)
+        else:
+            filesToExec = clArgs.decode().replace('\n', '')
+            filesToExec = re.split(" ",filesToExec)
+            x = 0
+            while(x < len(filesToExec)):
+                if(filesToExec[x]=="exit"):
+                    os.write(1, "Terminating\n".encode())
+                    sys.exit(1)
+                elif(filesToExec[x]=="ls"):
+                    print("Listing Command")
+                elif(filesToExec[x]=="cat"):
+                    print("Printing Command")
+                elif(filesToExec[x]=="cd"):
+                    os.chdir(filesToExec[x+1])
+                else:
+                    childProcess = os.fork()
+                    if(childProcess < 0):
+                        os.write(2, ("Child Process %d could not be created." %childProcess).encode())
+                    elif(fk==0):
+                        command = args[x]
+                        files = args[x+1:]
+                        try:
+                            os.execve(command, files, os.environ)
+                        except FileNotFoundError:
+                            os.write(2, ("Command %s could not be executed" % command).encode())
+                            sys.exit(1)
+                    else:
+                        
